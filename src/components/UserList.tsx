@@ -1,70 +1,112 @@
-import React from "react";
-import Image from "next/image";
-import { User } from "@/types/User";
+"use client";
 
-type UserListProps = {
-  users: User[];
-  onSelect: (user: User) => void;
+import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { createChatRoom, getAllChatRooms } from "@/lib/supabaseUtils";
+
+/** ------------------------------------------------------------------
+ *  Type helpers
+ *  ------------------------------------------------------------------*/
+export type ChatRoom = {
+  id: string;
+  name: string;
+  created_at?: string;
 };
 
-const UserList: React.FC<UserListProps> = ({ users, onSelect }) => {
+type ChatRoomListProps = {
+  /** called when user selects a room (e.g. open ChatWindow) */
+  onSelect: (room: ChatRoom) => void;
+};
+
+const ChatRoomList: React.FC<ChatRoomListProps> = ({ onSelect }) => {
+  const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [roomName, setRoomName] = useState("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // controls modal visibility
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      setLoading(true);
+      const data = await getAllChatRooms();
+      if (data) setRooms(data);
+      setLoading(false);
+    };
+    fetchRooms();
+  }, []);
+
+  const handleCreateRoom = async () => {
+    if (!roomName.trim()) return;
+    const newRoom = await createChatRoom(roomName.trim());
+    if (newRoom) {
+      setRooms((prev) => [newRoom, ...prev]);
+      setRoomName("");
+      setIsDialogOpen(false); // ⬅ close modal here
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-white">
-      {/* Top Filter Header */}
-      <div className="bg-gray-50 w-full h-14 p-2">
-        {/* Action Bar */}
-        <div className="flex items-center justify-between w-full text-black">
-          <div className="flex items-center gap-3 px-2">
-            <div className="text-green-600 font-semibold">Custom Filter</div>
-            <div className="border px-2 py-1 rounded-md cursor-pointer transition-transform hover:scale-105">
-              Save
-            </div>
-          </div>
-          <div className="flex items-center gap-3 px-2">
-            <div className="border px-2 py-1 rounded-md cursor-pointer transition-transform hover:scale-105">
-              Search
-            </div>
-            <div className="border px-2 py-1 rounded-md cursor-pointer transition-transform hover:scale-105">
-              Filtered
-            </div>
-          </div>
-        </div>
+      <div className="bg-gray-50 w-full h-14 p-2 flex items-center justify-between">
+        <span className="text-green-600 font-semibold">
+          {loading ? "Loading rooms…" : "All Chat Rooms"}
+        </span>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="ml-auto bg-green-600 text-white hover:bg-green-700">
+              Add New Chat Room
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create a Chat Room</DialogTitle>
+            </DialogHeader>
+
+            <Input
+              placeholder="Enter room name"
+              value={roomName}
+              onChange={(e) => setRoomName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateRoom()}
+            />
+
+            <Button onClick={handleCreateRoom} className="mt-4">
+              Create Room
+            </Button>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* User List Header */}
-
-      {/* User List Scrollable */}
-      <div className="flex-1 overflow-y-auto mt-2">
-        {users.map((user) => (
+      <div className="flex-1 overflow-y-auto">
+        {rooms.map((room) => (
           <div
-            key={user.id}
-            onClick={() => onSelect(user)}
-            className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer"
+            key={room.id}
+            onClick={() => onSelect(room)}
+            className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-none"
           >
-            <div className="relative w-10 h-10 rounded-full overflow-hidden">
-              <Image
-                src={user.imageUrl}
-                alt={user.name}
-                fill
-                className="object-cover rounded-full"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-center">
-                <p className="font-medium truncate">{user.name}</p>
-                <span className="text-xs text-gray-400 whitespace-nowrap">
-                  {user.time}
-                </span>
-              </div>
-              <p className="text-sm text-gray-500 truncate">
-                {user.lastMessage}
+            <p className="font-medium truncate">{room.name}</p>
+            {room.created_at && (
+              <p className="text-xs text-gray-400">
+                {new Date(room.created_at).toLocaleString()}
               </p>
-            </div>
+            )}
           </div>
         ))}
+
+        {!loading && rooms.length === 0 && (
+          <p className="text-center text-gray-500 py-6">No chat rooms yet.</p>
+        )}
       </div>
     </div>
   );
 };
 
-export default UserList;
+export default ChatRoomList;

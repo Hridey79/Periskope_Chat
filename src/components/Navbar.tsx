@@ -16,7 +16,7 @@ const Navbar = () => {
 
   return (
     <div className="p-2 flex items-center justify-between bg-white border-b">
-      <Image src={"/whatsapp.png"} alt="logo" height={50} width={50} />
+      <Image src={"/whatsapp.png"} alt="logo" height={30} width={30} />
 
       <div className="flex text-black gap-4 mr-10">
         <div className="border px-2 py-1 rounded-md cursor-pointer transform transition-transform hover:scale-105">

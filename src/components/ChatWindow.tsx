@@ -24,7 +24,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesEndRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -108,7 +111,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[94%] w-full self-end">
+    <div className="flex flex-col h-[94%] w-full self-start">
       {/* Header */}
       <div className="px-4 py-3 bg-[#075E54] text-white flex items-center gap-3 border-b min-h-[56px]">
         <div className="relative h-10 w-10">
@@ -129,7 +132,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* Chat Body */}
-      <div className="flex-1 overflow-y-auto px-4 py-3  bg-[url('/bg.jpg')] space-y-2">
+      <div
+        ref={messagesEndRef}
+        className="flex-1 overflow-y-auto px-4 py-3  bg-[url('/bg.jpg')] space-y-2"
+      >
         {messages.map((msg) => (
           <div
             key={msg.id || msg.created_at}
@@ -151,7 +157,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
+        {/* <div ref={messagesEndRef} /> */}
       </div>
 
       {/* Input or Join Button */}

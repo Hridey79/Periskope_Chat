@@ -71,18 +71,18 @@ const Chats: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex w-full">
       {/* Sidebar */}
-      <div className="w-full md:w-2/5 max-w-sm border-r bg-blue-50">
+      <div className="w-full md:w-2/5 max-w-sm border-r bg-blue-50 overflow-y-auto h-screen">
         <UserList users={users} onSelect={handleUserSelect} />
       </div>
 
       {/* Chat Window */}
-      <div className="flex-grow bg-white flex ">
+      <div className="flex-grow bg-white flex h-screen ">
         {selectedChat ? (
           <ChatWindow selectedChat={selectedChat} currentUserId={userId} />
         ) : (
-          <div className="h-full flex items-center justify-center w-full text-gray-400 text-2xl font-semibold  bg-[url('/bg.jpg')]">
+          <div className="flex items-center h-screen justify-center w-full text-gray-400 text-2xl font-semibold  bg-[url('/bg.jpg')]">
             Select a chat to start messaging
           </div>
         )}

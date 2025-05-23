@@ -23,12 +23,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [joining, setJoining] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fetch chat room details and messages when selected chat changes
   useEffect(() => {
     const fetchDetails = async () => {
       if (selectedChat?.id) {
@@ -36,7 +34,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         if (data) {
           setRoomDetails(data);
           setMessages(data.messages || []);
-          // Check if current user is member of chat room
           const memberIds = data.chat_room_members?.map((m) => m.user.id);
           setIsMember(memberIds?.includes(currentUserId) || false);
         }
@@ -46,12 +43,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     fetchDetails();
   }, [selectedChat, currentUserId]);
 
-  // Realtime subscription for new messages
   useEffect(() => {
-    if (!selectedChat?.id || !isMember) return; // only subscribe if member
+    if (!selectedChat?.id || !isMember) return;
 
     const channel = supabase
-      .channel("public:messages")
+      .channel(`chat_room_${selectedChat.id}`)
       .on(
         "postgres_changes",
         {
@@ -62,7 +58,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         },
         (payload) => {
           const newMsg = payload.new as Message;
-          setMessages((prev) => [...prev, newMsg]);
+          setMessages((prev) => {
+            const exists = prev.some((msg) => msg.id === newMsg.id);
+            return exists ? prev : [...prev, newMsg];
+          });
         }
       )
       .subscribe();
@@ -74,22 +73,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleSend = async () => {
     if (!newMessage.trim()) return;
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData?.user) {
-      console.error("Error getting current user:", userError);
-      return;
-    }
-
-    const newMsg = {
-      id: Date.now(), // temp id
-      chat_room_id: selectedChat.id,
-      sender_id: userData.user.id,
-      content: newMessage.trim(),
-      created_at: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
-    setNewMessage("");
 
     const { error } = await supabase.from("messages").insert([
       {
@@ -101,20 +84,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
     if (error) {
       console.error("Error sending message:", error.message);
+    } else {
+      setNewMessage(""); // Clear input only after successful send
     }
   };
 
-  // Handle Join button click
   const handleJoin = async () => {
     setJoining(true);
     try {
       await joinChatRoom(selectedChat.id);
-      // After joining, refresh chat room details to update members and messages
       const data = await getChatRoomDetails(selectedChat.id);
       if (data) {
         setRoomDetails(data);
         setMessages(data.messages || []);
-        const memberIds = data.chat_room_members?.map((m: any) => m.user.id);
+        // @ts-ignore
+        const memberIds = data.chat_room_members?.map((m) => m.user.id);
         setIsMember(memberIds?.includes(currentUserId) || false);
       }
     } catch (error) {
@@ -148,14 +132,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       <div className="flex-1 overflow-y-auto px-4 py-3 bg-[#ECE5DD] space-y-2">
         {messages.map((msg) => (
           <div
-            key={msg.id}
+            key={msg.id || msg.created_at}
             className={`flex ${
-              msg.sender_id === currentUserId ? "justify-end" : "justify-start"
+              msg.sender?.id === currentUserId || msg.sender_id == currentUserId
+                ? "justify-end"
+                : "justify-start"
             }`}
           >
             <div
               className={`px-4 py-2 rounded-lg text-sm max-w-96 break-words whitespace-pre-wrap ${
-                msg.sender_id === currentUserId
+                msg.sender?.id === currentUserId ||
+                msg.sender_id == currentUserId
                   ? "bg-[#DCF8C6] text-black"
                   : "bg-white text-black"
               }`}

@@ -1,16 +1,21 @@
 import { supabase } from "./supabaseClient";
 
-const createChatRoom = async (roomName: string) => {
+const createChatRoom = async (roomName: string, tags: string[] = []) => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData?.user) {
     console.error("Error getting current user:", userError);
     return;
   }
 
-  // Step 1: Create chat room
   const { data: chatRoom, error: chatError } = await supabase
     .from("chat_rooms")
-    .insert([{ name: roomName, created_by: userData.user.id }])
+    .insert([
+      {
+        name: roomName,
+        created_by: userData.user.id,
+        tags, // ✅ store tags array
+      },
+    ])
     .select("*")
     .single();
 
@@ -19,7 +24,6 @@ const createChatRoom = async (roomName: string) => {
     return;
   }
 
-  // Step 2: Add current user as a member of the new chat room
   const { error: memberError } = await supabase
     .from("chat_room_members")
     .insert([{ chat_room_id: chatRoom.id, user_id: userData.user.id }]);

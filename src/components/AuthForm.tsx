@@ -84,9 +84,9 @@ const AuthForm: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-muted px-4">
-      <Card className="w-full max-w-md shadow-2xl rounded-2xl border">
-        <CardHeader className="text-center space-y-2">
+    <div className="flex justify-center items-center min-h-screen bg-muted px-4 bg-[url('/bg.jpg')]">
+      <Card className="w-full max-w-md shadow-2xl rounded-2xl border bg-[#ECE5DD] py-0 pb-3">
+        <CardHeader className="text-center space-y-2 bg-[#075E54] text-white mt-0 rounded-t-xl py-3">
           <CardTitle className="text-3xl font-bold">
             {isLogin ? "Welcome Back" : "Create an Account"}
           </CardTitle>
@@ -137,7 +137,7 @@ const AuthForm: React.FC = () => {
           <Button
             onClick={handleAuth}
             disabled={loading}
-            className="w-full font-semibold cursor-pointer"
+            className="w-full font-semibold cursor-pointer bg-green-600 hover:bg-green-700"
           >
             {loading ? "Please wait..." : isLogin ? "Login" : "Register"}
           </Button>

@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { logoutUser } from "@/lib/supabaseUtils";
+import Image from "next/image";
 
 const Navbar = () => {
   const router = useRouter();
@@ -15,10 +16,7 @@ const Navbar = () => {
 
   return (
     <div className="p-2 flex items-center justify-between bg-white border-b">
-      <div className="flex items-center gap-2 ml-1">
-        <div className="rounded-full bg-green-400 h-10 w-10"></div>
-        <div className="text-slate-400">chats</div>
-      </div>
+      <Image src={"/whatsapp.png"} alt="logo" height={50} width={50} />
 
       <div className="flex text-black gap-4 mr-10">
         <div className="border px-2 py-1 rounded-md cursor-pointer transform transition-transform hover:scale-105">

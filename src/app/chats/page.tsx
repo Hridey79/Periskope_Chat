@@ -82,7 +82,7 @@ const Chats: React.FC = () => {
         {selectedChat ? (
           <ChatWindow selectedChat={selectedChat} currentUserId={userId} />
         ) : (
-          <div className="h-full flex items-center justify-center w-full text-gray-400">
+          <div className="h-full flex items-center justify-center w-full text-gray-400 text-2xl font-semibold  bg-[url('/bg.jpg')]">
             Select a chat to start messaging
           </div>
         )}

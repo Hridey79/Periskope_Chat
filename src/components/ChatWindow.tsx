@@ -129,7 +129,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* Chat Body */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 bg-[#ECE5DD] space-y-2">
+      <div className="flex-1 overflow-y-auto px-4 py-3  bg-[url('/bg.jpg')] space-y-2">
         {messages.map((msg) => (
           <div
             key={msg.id || msg.created_at}
